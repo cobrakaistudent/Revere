@@ -15,7 +15,7 @@ import subprocess
 import datetime
 import platform
 import getpass
-# import hermes
+import logging
 
 # Get system information
 system_info = f"System: {platform.system()}"
@@ -24,6 +24,11 @@ current_user = f"User: {getpass.getuser()}"
 system_info_str = f"{system_info}\n{server_name}\n{current_user}"
 hostname = platform.node()
 username = getpass.getuser()
+
+
+# Set up logging with customized format
+logging.basicConfig(filename='C:\\Users\\AVildos1\\OneDrive - T-Mobile USA\\Documents\\pythonprj\\Revere\\logfile.log', level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - Server Name: {server} - User: {user} - %(message)s'.format(user=username, server=hostname))
 
 class Color:
     RESET = '\033[0m'
@@ -278,13 +283,22 @@ def generate_dictionary(folder_path):
     return file_dict
 
 def read_site_names(file_path):
-    """Read site names from a text file."""
-    with open(file_path, 'r') as file:
-        site_names = [line.strip() for line in file if line.strip()]
-    if not site_names:
-        # Do something if site_names is empty
-        print("Site names list is empty!")
-    return site_names
+    """Read site names from a text file.
+    file_path: path to the file containing site names
+    """
+    try:
+        with open(file_path, 'r') as file:
+            site_names = [line.strip() for line in file if line.strip()]
+        if not site_names:
+            logging.warning("Site names list is empty!")
+        return site_names
+    except FileNotFoundError:
+        logging.error(f"File '{file_path}' not found.")
+        return []
+    except Exception as e:
+        logging.error(f"An error occurred while reading the file: {e}")
+        return []
+
 
 def main(site_names:list, folder_path='/home/shared/common/Overnight_Work/Rehomes/Prechecks'):
     """
@@ -345,48 +359,60 @@ def main(site_names:list, folder_path='/home/shared/common/Overnight_Work/Rehome
 
 if __name__ == "__main__":
     # Check if the script is run as the main module
-    if len(sys.argv) < 2 or len(sys.argv) > 3:
-        print("Usage: python script input_file_path [folder_path]")
-        sys.exit(1)
-    
-    input_file_path = sys.argv[1]
-    
-    # Check if the folder path is provided as an argument
-    if len(sys.argv) == 3:
-        folder_path = sys.argv[2]
-    else:
-        folder_path = '/home/shared/common/Overnight_Work/Rehomes/Prechecks'  # Default value
-    
-    # Read site names from the input file
-    site_names = read_site_names(input_file_path)
-    
-    # Check if site_names is not empty before calling main
-    if site_names:
-        body = main(site_names, folder_path)
-        # Print the output to be captured by the Bash script
-        print(body)
-    else:
-        print("Main not executed because site_names is empty.")
+    try:
+        if len(sys.argv) < 2 or len(sys.argv) > 3:
+            print("Usage: python script input_file_path [folder_path]")
+            logging.error("Usage: python script input_file_path [folder_path]")    
+            sys.exit(1)
+        
+        input_file_path = sys.argv[1]
+        
+        # Check if the folder path is provided as an argument
+        if len(sys.argv) == 3:
+            folder_path = sys.argv[2]
+        else:
+            folder_path = '/home/shared/common/Overnight_Work/Rehomes/Prechecks'  # Default value
+        
+        # Read site names from the input file
+        site_names = read_site_names(input_file_path)
+        
+        # Check if site_names is not empty before calling main
+        if site_names:
+            body = main(site_names, folder_path)
+            # Print the output to be captured by the Bash script
+            print(body)
+        else:
+            print("Main not executed because site_names is empty.")
+            logging.error("Main not executed because site_names is empty.")
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+        print(f"An error occurred: {e}")
+        logging.error(f"An error occurred: {e}")
     
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ TESTING AREA
 
 # if __name__ == "__main__":
 #     # Example usage
+#     try:
+#         # Read site names from the input file
+#         folder_path = r'C:\\Users\\AVildos1\\OneDrive - T-Mobile USA\\Documents\\pythonprj\\Rehomes\\Prechecks'
+#         # input_file_path = r'C:\\Users\\AVildos1\\OneDrive - T-Mobile USA\\Documents\\pythonprj\\Rehomes\\sitelist.txt'
+#         input_file_path = r'C:\\Users\\AVildos1\\OneDrive - T-Mobile USA\\Documents\\pythonprj\\Rehomes\\sitelist_empty.txt'
 
-#     # Read site names from the input file
-#     folder_path = r'C:\\Users\\AVildos1\\OneDrive - T-Mobile USA\\Documents\\pythonprj\\Rehomes\\Prechecks'
-#     input_file_path = r'C:\\Users\\AVildos1\\OneDrive - T-Mobile USA\\Documents\\pythonprj\\Rehomes\\sitelist.txt'
-
-#     site_names = read_site_names(input_file_path)
-#     body = main(site_names, folder_path)
-
-# datestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-
-# print(body)
-
-# with open(f'output_{datestamp}.txt', 'w') as f:
-#     print(body,file=f)
-
+#         site_names = read_site_names(input_file_path)
+#         # Check if site_names is not empty before calling main
+#         if site_names:
+#             body = main(site_names, folder_path)
+#             # Print the output to be captured by the Bash script
+#             print(body)
+#             datestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+#             with open(f'output_{datestamp}.txt', 'w') as f:
+#                 print(body,file=f)
+#         else:
+#             print("WARNING!!! Main not executed because site_names is empty.")
+#     except Exception as e:
+#         logging.error(f"An error occurred: {e}")
+    
 
 
 
